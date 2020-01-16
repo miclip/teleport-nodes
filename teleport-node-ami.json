@@ -29,23 +29,25 @@
         {
             "type": "file",
             "source": "./teleport.yml",
-            "destination": "/home/ubuntu/"
+            "destination": "/tmp/"
         },
         {
-
-            "type": "shell",
-            "script": "./install_teleport.sh",
-            "execute_command": "echo 'packer' | sudo -S sh -c '{{ .Vars }} {{ .Path }}'"
+            "type": "file",
+            "source": "./teleport.service",
+            "destination": "/tmp/"
         },
         {
             "type": "shell",
             "environment_vars": ["AUTH_SERVER_ADDR={{user `auth_server_addr`}}"],
             "inline": [
-                 "sed -i 's/((AUTH_SERVER_ADDR))/'$AUTH_SERVER_ADDR'/g' /home/ubuntu/teleport.yml",
-                 "cat /home/ubuntu/teleport.yml"
-
+                 "sed -i 's/((AUTH_SERVER_ADDR))/'$AUTH_SERVER_ADDR'/g' /tmp/teleport.yml",
+                 "cat /tmp/teleport.yml"
              ]
-
+        },
+        {
+            "type": "shell",
+            "script": "./install_teleport.sh",
+            "execute_command": "echo 'packer' | sudo -S sh -c '{{ .Vars }} {{ .Path }}'"
         }
     ]
 }

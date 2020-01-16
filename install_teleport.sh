@@ -6,3 +6,6 @@ shasum -a 256 teleport-v4.2.1-linux-amd64-bin.tar.gz
 tar -xzf teleport-v4.2.1-linux-amd64-bin.tar.gz
 cd teleport
 ./install
+cp /tmp/teleport.yml /etc/teleport.yml
+cp /tmp/teleport.service /etc/systemd/system/
+systemctl enable teleport.service

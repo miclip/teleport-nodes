@@ -1,0 +1,11 @@
+teleport:
+  nodename: pez-jumpbox
+  auth_token: cluster-join-token
+  auth_servers: # note: we use the proxy address here for node tunneling
+  - ((AUTH_SERVER_ADDR))
+ssh_service:
+  enabled: yes
+proxy_service:
+  enabled: no
+auth_service:
+  enabled: no

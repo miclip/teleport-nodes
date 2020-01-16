@@ -1,0 +1,70 @@
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: teleport-config
+data:
+  teleport-config: |
+    teleport:
+      nodename: miclip-k8s-node
+      auth_token: cluster-join-token
+      auth_servers: # note: we use the proxy address here for node tunneling
+      - **AUTH_SERVER_ADDR**
+    ssh_service:
+      enabled: yes
+    proxy_service:
+      enabled: no
+    auth_service:
+      enabled: no
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    run: teleport-node
+  name: teleport-node
+  namespace: teleport
+spec:
+  progressDeadlineSeconds: 600
+  replicas: 1
+  revisionHistoryLimit: 10
+  selector:
+    matchLabels:
+      run: teleport-node
+  strategy:
+    rollingUpdate:
+      maxSurge: 25%
+      maxUnavailable: 25%
+    type: RollingUpdate
+  template:
+    metadata:
+      labels:
+        run: teleport-node
+    spec:
+      containers:
+      - image: miclip/teleport-node
+        imagePullPolicy: Always
+        command:
+        - teleport
+        - "start"
+        - "-c"
+        - "./teleport-config/teleport.yml"
+        - "-d"
+        - "--insecure"
+        name: teleport-node
+        terminationMessagePath: /dev/termination-log
+        terminationMessagePolicy: File
+        volumeMounts:
+        - mountPath: /teleport-config
+          name: config
+      volumes:
+      - name: config
+        configMap:
+          name: teleport-config
+          items:
+          - key: teleport-config
+            path: teleport.yml
+      dnsPolicy: ClusterFirst
+      restartPolicy: Always
+      schedulerName: default-scheduler
+      terminationGracePeriodSeconds: 30

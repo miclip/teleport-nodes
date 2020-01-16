@@ -1,0 +1,51 @@
+{
+    "variables": {
+        "aws_access_key": "{{env `AWS_ACCESS_KEY_ID`}}",
+        "aws_secret_key": "{{env `AWS_SECRET_ACCESS_KEY`}}",
+        "region":         "{{env `AWS_REGION`}}",
+        "auth_server_addr": "{{env `AUTH_SERVER_ADDR`}}"
+    },
+    "builders": [
+        {
+            "access_key": "{{user `aws_access_key`}}",
+            "ami_name": "teleport-ubuntu-{{timestamp}}",
+            "instance_type": "t2.micro",
+            "region": "{{user `region`}}",
+            "secret_key": "{{user `aws_secret_key`}}",
+            "source_ami_filter": {
+              "filters": {
+              "virtualization-type": "hvm",
+              "name": "ubuntu/images/*ubuntu-xenial-16.04-amd64-server-*",
+              "root-device-type": "ebs"
+              },
+              "owners": ["099720109477"],
+              "most_recent": true
+            },
+            "ssh_username": "ubuntu",
+            "type": "amazon-ebs"
+        }
+    ],
+    "provisioners": [
+        {
+            "type": "file",
+            "source": "./teleport.yml",
+            "destination": "/home/ubuntu/"
+        },
+        {
+
+            "type": "shell",
+            "script": "./install_teleport.sh",
+            "execute_command": "echo 'packer' | sudo -S sh -c '{{ .Vars }} {{ .Path }}'"
+        },
+        {
+            "type": "shell",
+            "environment_vars": ["AUTH_SERVER_ADDR={{user `auth_server_addr`}}"],
+            "inline": [
+                 "sed -i 's/((AUTH_SERVER_ADDR))/'$AUTH_SERVER_ADDR'/g' /home/ubuntu/teleport.yml",
+                 "cat /home/ubuntu/teleport.yml"
+
+             ]
+
+        }
+    ]
+}
